@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="An interactive controller targeting prototype for Last Epoch.">
+<title>Gamepad Combat Targeting Laboratory</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="shell">
+<header class="mast">
+  <div class="identity"><div class="mark" aria-hidden="true">◎</div><div><div class="product">LAST EPOCH / DESIGN LAB</div><h1>Gamepad Combat Targeting</h1></div></div>
+  <div id="device" class="device">Keyboard active</div>
+</header>
+<div class="workspace">
+<section class="stage">
+  <div class="toolbar"><div><label for="scenario">Scenario</label><select id="scenario" aria-label="Scenario"></select></div><div class="actions"><button id="restart" type="button">Reset arena</button><button id="pause" type="button" aria-pressed="false">Pause</button></div></div>
+  <div class="board"><canvas id="arena" tabindex="0" aria-label="Combat arena. Use WASD to move, arrow keys to aim, and keys 1 to 4 to cast."></canvas>
+    <div class="arena-top"><div id="arena-state">SIMULATION LIVE</div><div id="arena-detail"></div></div>
+    <div class="legend"><span class="far">Far cone</span><span class="near">Near cone</span><span class="reticle">Reticle</span><span class="chosen">Selected target</span></div>
+  </div>
+  <div class="objective" id="objective"></div>
+  <div class="skills" id="skills" aria-label="Combat skills"></div>
+  <div class="bindings"><span><b>Move</b> WASD / LS</span><span><b>Aim</b> Arrows / RS</span><span><b>Range</b> Shift + ↑/↓ / RS</span><span><b>Dodge</b> Space / A</span><span><b>Potion</b> F / B</span><span><b>Pause</b> P / Menu</span></div>
+</section>
+<aside class="side">
+  <div class="panel-head"><h2>Lab controls</h2><button id="collapse" type="button" aria-expanded="true" aria-controls="panel">Collapse</button></div>
+  <div id="panel">
+    <div class="tabs" role="group" aria-label="Lab controls"><button data-tab="tuning" aria-pressed="true">Tuning</button><button data-tab="diagnostics" aria-pressed="false">Diagnostics</button><button data-tab="enemies" aria-pressed="false">Enemies</button></div>
+    <div class="panel-body" id="tuning"></div>
+    <div class="panel-body" id="diagnostics" hidden></div>
+    <div class="panel-body" id="enemies" hidden></div>
+    <div class="panel-foot"><button id="defaults">Reset to defaults</button><button id="import">Import</button><button id="export">Export</button><input id="config-file" type="file" accept="application/json,.json" hidden></div>
+    <div id="notice" role="status"></div>
+  </div>
+</aside>
+</div>
+</main>
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>
