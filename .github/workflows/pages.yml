@@ -1,0 +1,66 @@
+name: Publish Controller Targeting Lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'source/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: controller-lab-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Restore original source files from uploaded package
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat source/part{00..03}.b64 | base64 --decode > /tmp/targeting-lab.tar.xz
+          echo '3e81ad71e1dc457cdd2e1424dbc246cd3ec606d643416fc931de80e22d4958a3  /tmp/targeting-lab.tar.xz' | sha256sum --check
+          tar -xJf /tmp/targeting-lab.tar.xz
+          test -f docs/index.html
+          test -f docs/app.mjs
+
+      - name: Commit extracted, editable source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md docs/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Expand targeting lab source into docs'
+            git push origin HEAD:main
+          fi
+
+      - name: Upload static site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@v4
