@@ -1,4 +1,4 @@
-import { ENEMY_RADIUS, arenaSize, polar, radians, rayToViewport, relativePosition } from './targeting.mjs';
+import { ENEMY_RADIUS, arenaSize, farConeHalfWidth, polar, radians, rayToViewport, relativePosition } from './targeting.mjs';
 import { SKILLS } from './simulation.mjs';
 
 const colors = { far: '#9da8ff', near: '#68d3ad', reticle: '#f6d294', chosen: '#ff997e', movement: '#83e4cf', facing: '#edeffe' };
@@ -58,6 +58,23 @@ export class Arena {
     this.paint(stroke, fill);
   }
 
+  farCone(aim, halfAngle, setback) {
+    const c = this.ctx;
+    const depth = Math.hypot(this.view.width, this.view.height);
+    const mouth = farConeHalfWidth(0, halfAngle, setback);
+    const end = farConeHalfWidth(depth, halfAngle, setback);
+    c.save();
+    c.rotate(aim);
+    c.beginPath();
+    c.moveTo(0, -mouth);
+    c.lineTo(depth, -end);
+    c.lineTo(depth, end);
+    c.lineTo(0, mouth);
+    c.closePath();
+    this.paint('#a1aaff88', '#8492ff29');
+    c.restore();
+  }
+
   vector(angle, length, color, label) {
     const tip = polar({ x: 0, y: 0 }, angle, length);
     const start = polar({ x: 0, y: 0 }, angle, 18);
@@ -106,7 +123,7 @@ export class Arena {
     c.translate(w / 2, h / 2);
     this.grid(p, world);
     if (s.showCones) {
-      this.sector(0, 0, p.aim, radians(s.farAngle / 2), Math.hypot(w, h), '#a1aaff88', '#8492ff29');
+      this.farCone(p.aim, radians(s.farAngle / 2), s.farSetback);
       this.sector(0, 0, p.aim, radians(s.nearAngle / 2), s.nearRange, '#7af0be8c', '#54cf9938');
     }
     if (s.showVectors) {

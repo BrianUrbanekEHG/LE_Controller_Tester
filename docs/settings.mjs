@@ -1,6 +1,7 @@
 export const groups = {
   'Targeting cones': {
-    farAngle: ['Far cone angle', 30, 5, 160, 1, '°'],
+    farAngle: ['Far cone angle', 12, 5, 160, 1, '°'],
+    farSetback: ['Far cone apex setback', 145, 0, 300, 5, ' px'],
     nearAngle: ['Near cone angle', 120, 15, 360, 1, '°'],
     nearRange: ['Near cone range', 105, 25, 260, 1, ' px']
   },

@@ -51,12 +51,32 @@ export function enemyOverlapsSector(centerDistance, angularOffset, halfAngle, ra
   return Math.hypot(alongSide - closest, acrossSide) <= ENEMY_RADIUS + 1e-9;
 }
 
-export function compositeCone(player, aim, enemy, farAngle, nearAngle, nearRange, viewport, world) {
+export function farConeHalfWidth(depth, halfAngle, setback) {
+  return (depth + setback) * Math.tan(halfAngle);
+}
+
+function overlapsClippedFarCone(forward, lateral, halfAngle, setback) {
+  const mouth = farConeHalfWidth(0, halfAngle, setback);
+  if (forward >= 0 && lateral <= farConeHalfWidth(forward, halfAngle, setback)) return true;
+
+  // Outside the cone, the nearest point is on the front edge or a sloping side.
+  const frontDistance = Math.hypot(forward, lateral - clamp(lateral, 0, mouth));
+  const cos = Math.cos(halfAngle);
+  const sin = Math.sin(halfAngle);
+  const fromMouth = lateral - mouth;
+  const alongSide = Math.max(0, forward * cos + fromMouth * sin);
+  const sideDistance = Math.hypot(forward - alongSide * cos, fromMouth - alongSide * sin);
+  return Math.min(frontDistance, sideDistance) <= ENEMY_RADIUS + 1e-9;
+}
+
+export function compositeCone(player, aim, enemy, farAngle, nearAngle, nearRange, viewport, world, farSetback = 0) {
   const { x: dx, y: dy } = relativePosition(player, enemy, world);
   const range = Math.hypot(dx, dy);
   const offset = range === 0 ? 0 : angleBetween(Math.atan2(dy, dx), aim);
   const onScreen = Math.abs(dx) <= viewport.width / 2 && Math.abs(dy) <= viewport.height / 2;
-  const inFar = onScreen && enemyOverlapsSector(range, offset, radians(farAngle / 2), Infinity);
+  const forward = dx * Math.cos(aim) + dy * Math.sin(aim);
+  const lateral = Math.abs(dy * Math.cos(aim) - dx * Math.sin(aim));
+  const inFar = onScreen && overlapsClippedFarCone(forward, lateral, radians(farAngle / 2), farSetback);
   const inNear = onScreen && enemyOverlapsSector(range, offset, radians(nearAngle / 2), nearRange);
   return { inFar, inNear, eligible: inFar || inNear, distance: range, offset, onScreen };
 }
@@ -65,7 +85,7 @@ export function selectTarget(enemies, player, aim, viewport, settings, skill, pr
   const candidates = [];
   const reasons = {};
   for (const enemy of enemies) {
-    const geo = compositeCone(player, aim, enemy, settings.farAngle, settings.nearAngle, settings.nearRange, viewport, world);
+    const geo = compositeCone(player, aim, enemy, settings.farAngle, settings.nearAngle, settings.nearRange, viewport, world, settings.farSetback);
     const rejection = enemy.hp <= 0 ? 'Defeated'
       : enemy.state === 'hidden' ? 'Concealed'
       : enemy.state === 'untargetable' ? 'Untargetable'
